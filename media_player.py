@@ -210,7 +210,7 @@ class media_player(item.item):
 		
 		return continue_playback
 
-        def __seek_to_start(self):
+        def rewind(self):
                 try:
                         self.videoTrack.seek_to_frame(1)    #To prevent reading before the first frame which happens occasionally with some files
                 except IOError:
@@ -232,7 +232,7 @@ class media_player(item.item):
 			print "media_player.run(): Audio delay: %d" % (300000-self.audioCorrection)
 		
 		if self.file_loaded:
-			self.__seek_to_start()
+			self.rewind()   #Make sure pointer is at the beginning of the video file
 			
 			self.playing = True
 			startTime = pygame.time.get_ticks()			
@@ -277,8 +277,8 @@ class media_player(item.item):
 					sleeptime = int(self.frameTime - pygame.time.get_ticks() + self.frame_calc_start)
 					if sleeptime > 0:
 						pygame.time.wait(sleeptime)                
-
-			self.__seek_to_start()  #Rewind, if it needs to be played again
+                        
+			self.rewind()  #Rewind, if it needs to be played again in a next trial/block
 			
 			return True
 		else:
