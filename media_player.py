@@ -209,7 +209,15 @@ class media_player(item.item):
 			continue_playback = False
 		
 		return continue_playback
-                
+
+        def __seek_to_start(self):
+                try:
+                        self.videoTrack.seek_to_frame(1)    #To prevent reading before the first frame which happens occasionally with some files
+                except IOError:
+                        try:
+                                self.videoTrack.seek_to_frame(10)
+                        except IOError:
+                                raise exceptions.runtime_error("Could not read the first frames of the video file")
 
 	
 	def run(self):
@@ -224,14 +232,8 @@ class media_player(item.item):
 			print "media_player.run(): Audio delay: %d" % (300000-self.audioCorrection)
 		
 		if self.file_loaded:
-			try:
-				self.videoTrack.seek_to_frame(1)    #To prevent reading before the first frame which happens occasionally with some files
-			except IOError:
-				try:
-					self.videoTrack.seek_to_frame(10)
-				except IOError:
-					raise exceptions.runtime_error("Could not read the first frames of the video file")
-				     
+			self.__seek_to_start()
+			
 			self.playing = True
 			startTime = pygame.time.get_ticks()			
 			while self.playing:
@@ -277,12 +279,16 @@ class media_player(item.item):
 						pygame.time.wait(sleeptime)                
 														
 			# Clean up on aisle 4!
-			if self.hasSound:
-				if hasattr(self,"audiostream"):                
-					self.audiostream.close()
-					self.audioTrack.close()
-			self.videoTrack.close()
-			self.mp.close()
+
+			self.__seek_to_start()
+
+##			if self.hasSound:
+##				if hasattr(self,"audiostream"):                
+##					self.audiostream.close()
+##					self.audioTrack.close()
+##			self.videoTrack.close()
+##			self.mp.close()
+			
 			return True
 		else:
 			raise exceptions.runtime_error("No video loaded")
