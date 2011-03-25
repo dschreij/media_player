@@ -277,8 +277,22 @@ class media_player(item.item):
 					sleeptime = int(self.frameTime - pygame.time.get_ticks() + self.frame_calc_start)
 					if sleeptime > 0:
 						pygame.time.wait(sleeptime)                
+<<<<<<< HEAD
 
 			self.__seek_to_start()  #Rewind, if it needs to be played again
+=======
+														
+			# Clean up on aisle 4!
+
+			self.__seek_to_start()
+
+##			if self.hasSound:
+##				if hasattr(self,"audiostream"):                
+##					self.audiostream.close()
+##					self.audioTrack.close()
+##			self.videoTrack.close()
+##			self.mp.close()
+>>>>>>> ff33a0e739ecb1d9f5823fe59266c3f6cbe19bab
 			
 			return True
 		else:
