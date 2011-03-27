@@ -112,23 +112,22 @@ class media_player(item.item):
 			self.mp.open(vfile,TS_VIDEO_RGB24)               # will throw IOError if it doesn't find an audio stream
 			(self.videoTrack,self.audioTrack) = self.mp.get_tracks()
 			if self.playaudio == "yes":
-				self.samplingFreq = self.audioTrack.get_samplerate()
-				self.audioTrack.set_observer(self.handleAudioFrame)
+				self.samplingFreq = self.audioTrack.get_samplerate()			
 				if self.experiment.debug:
 					print "media_player.load(): Channels: %s" % self.audioTrack.get_channels()
 				self.audiostream = pyaudio.PyAudio().open(rate=self.samplingFreq,
-															channels=self.audioTrack.get_channels(),
-															format=pyaudio.paInt16,
-															output=True)
+                                                                        channels=self.audioTrack.get_channels(),
+                                                                        format=pyaudio.paInt16,
+                                                                        output=True)
 														
 				self.hasSound = True
 			else:
 				self.hasSound = False
 				self.audioTrack = None
+				self.audiostream = None
 		except:
 			try:
-				del TS_VIDEO_RGB24['audio1']
-				self.mp.open(vfile)
+				self.mp.open(vfile,pyffmpeg.TS_VIDEO)
 			except Exception as e:
 				raise exceptions.runtime_error("Error opening video file. Please make sure a video file is specified and that it is of a supported format.<br><br>Error: %s" % e)
 			else:
@@ -136,6 +135,8 @@ class media_player(item.item):
 				self.hasSound = False
 				if self.experiment.debug:
 					print "media_player.load(): No audio track found"
+		else:               
+                        self.audioTrack.set_observer(self.handleAudioFrame)
 
 		self.videoTrack.set_observer(self.handleVideoFrame)
 		self.frameTime = 1000/self.videoTrack.get_fps()
@@ -251,8 +252,8 @@ class media_player(item.item):
 							self.playing = False
 							
 						# Catch escape presses
-						if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:							
-							raise exceptions.runtime_error("The escape key was pressed")													
+                                                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:							
+                                                        raise exceptions.runtime_error("The escape key was pressed")													
 				
 				# Advance to the next frame if the player isn't paused
 				if not self.paused:				
@@ -269,9 +270,9 @@ class media_player(item.item):
 						self.experiment.eyelink.status_msg("videoframe %s" % frame_no )
 							
 					# Check if max duration has been set, and exit if exceeded
-					if type(self.duration) == int:
-						if pygame.time.get_ticks() - startTime > (self.duration*1000):
-							self.playing = False							
+##					if type(self.duration) == int:
+##						if pygame.time.get_ticks() - startTime > (self.duration*1000):
+##							self.playing = False							
 							
 					#Sleep for remainder of a frame duration that's left after all the processing time. This is only necessary when there is no sound stream
 					sleeptime = int(self.frameTime - pygame.time.get_ticks() + self.frame_calc_start)
