@@ -270,9 +270,9 @@ class media_player(item.item):
 						self.experiment.eyelink.status_msg("videoframe %s" % frame_no )
 							
 					# Check if max duration has been set, and exit if exceeded
-##					if type(self.duration) == int:
-##						if pygame.time.get_ticks() - startTime > (self.duration*1000):
-##							self.playing = False							
+					if type(self.duration) == int:
+						if pygame.time.get_ticks() - startTime > (self.duration*1000):
+							self.playing = False							
 							
 					#Sleep for remainder of a frame duration that's left after all the processing time. This is only necessary when there is no sound stream
 					sleeptime = int(self.frameTime - pygame.time.get_ticks() + self.frame_calc_start)
