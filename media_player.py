@@ -135,8 +135,9 @@ class media_player(item.item):
 				self.hasSound = False
 				if self.experiment.debug:
 					print "media_player.load(): No audio track found"
-		else:               
-                        self.audioTrack.set_observer(self.handleAudioFrame)
+		else:
+                        if self.playaudio == "yes":
+                                self.audioTrack.set_observer(self.handleAudioFrame)
 
 		self.videoTrack.set_observer(self.handleVideoFrame)
 		self.frameTime = 1000/self.videoTrack.get_fps()
@@ -266,13 +267,13 @@ class media_player(item.item):
 							
 					if self.sendInfoToEyelink == "yes" and hasattr(self.experiment,"eyelink") and self.experiment.eyelink.connected():
 						frame_no = self.videoTrack.get_current_frame_frameno()
-						self.experiment.eyelink.log("MSG videoframe %s" % frame_no)
+						self.experiment.eyelink.log("videoframe %s" % frame_no)
 						self.experiment.eyelink.status_msg("videoframe %s" % frame_no )
 							
 					# Check if max duration has been set, and exit if exceeded
-##					if type(self.duration) == int:
-##						if pygame.time.get_ticks() - startTime > (self.duration*1000):
-##							self.playing = False							
+					if type(self.duration) == int:
+						if pygame.time.get_ticks() - startTime > (self.duration*1000):
+							self.playing = False							
 							
 					#Sleep for remainder of a frame duration that's left after all the processing time. This is only necessary when there is no sound stream
 					sleeptime = int(self.frameTime - pygame.time.get_ticks() + self.frame_calc_start)
