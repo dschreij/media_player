@@ -84,10 +84,10 @@ class media_player(item.item):
 
 		# Find the full path to the video file. This will point to some
 		# temporary folder where the file pool has been placed
-		path = self.experiment.get_file(self.video_src)
+                path = self.experiment.get_file(str(self.get("video_src")))
 
 		# Open the video file
-		if not os.path.exists(path) or self.video_src.strip() == "":
+		if not os.path.exists(path) or str(self.get("video_src")).strip() == "":
 			raise exceptions.runtime_error("Video file '%s' was not found in video_player '%s' (or no video file was specified)." % (os.path.basename(path), self.name))
 		self.load(path)
 
@@ -136,7 +136,7 @@ class media_player(item.item):
 				if self.experiment.debug:
 					print "media_player.load(): No audio track found"
 		else:
-                        if self.playaudio == "yes":
+                        if self.hasSound:
                                 self.audioTrack.set_observer(self.handleAudioFrame)
 
 		self.videoTrack.set_observer(self.handleVideoFrame)
