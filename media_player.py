@@ -43,7 +43,7 @@ class media_player(item.item):
 		"""
 
 		# The version of the plug-in
-		self.version = 0.11
+		self.version = 0.13
 		
 		self.mp = pyffmpeg.FFMpegReader(0,False)
 		self.videoTrack = None
@@ -63,6 +63,7 @@ class media_player(item.item):
 		self.video_src = ""
 		self.sendInfoToEyelink = "yes"
 		self.event_handler = ""
+		self.frameNo = 0
 
 		# The parent handles the rest of the construction
 		item.item.__init__(self, name, experiment, string)
@@ -91,6 +92,9 @@ class media_player(item.item):
 			raise exceptions.runtime_error("Video file '%s' was not found in video_player '%s' (or no video file was specified)." % (os.path.basename(path), self.name))
 		self.load(path)
 
+		# Indicate function for clean up that is run after the experiment finishes
+		self.experiment.cleanup_functions.append(self.closeStreams)
+		
 		# Report success
 		return True
 		
@@ -163,6 +167,7 @@ class media_player(item.item):
 			img = pygame.image.frombuffer(f.tostring(),self.videoTrack.get_size(),"RGB")
 			self.screen.blit(img,((self.experiment.width - img.get_width()) / 2, (self.experiment.height - img.get_height()) / 2))
 			pygame.display.flip()
+		self.frameNo += 1
 			
 		   
 	def handleAudioFrame(self, a):
@@ -198,7 +203,7 @@ class media_player(item.item):
 		"""
 		video = self.videoTrack
 		audio = self.audioTrack
-		frame_no = self.videoTrack.get_current_frame_frameno()
+		frame_no = self.frameNo
 
 		continue_playback = True
                 
@@ -215,9 +220,11 @@ class media_player(item.item):
         def rewind(self):
                 try:
                         self.videoTrack.seek_to_frame(1)    #To prevent reading before the first frame which happens occasionally with some files
+                        self.frameNo = 1
                 except IOError:
                         try:
                                 self.videoTrack.seek_to_frame(10)
+                                self.frameNo = 10
                         except IOError:
                                 raise exceptions.runtime_error("Could not read the first frames of the video file")
 
@@ -235,11 +242,10 @@ class media_player(item.item):
 		
 		if self.file_loaded:
 			self.rewind()   #Make sure pointer is at the beginning of the video file
-			
+					
 			self.playing = True
 			startTime = pygame.time.get_ticks()			
-			while self.playing:
-									
+			while self.playing:									
 				self.frame_calc_start = pygame.time.get_ticks()
 								
 				# Process all events
@@ -286,6 +292,18 @@ class media_player(item.item):
 		else:
 			raise exceptions.runtime_error("No video loaded")
 			return False
+
+	def closeStreams(self):
+		try:
+			self.mp.close()
+			self.mp = None
+			if hasattr(self,"audiostream"):
+				self.audiostream.close()					
+			return True
+		except Exception as e:
+			if self.experiment.debug:
+				print "media_player.run(): an Error was caught: %s" % e
+			return false
 
 class qtmedia_player(media_player, qtplugin.qtplugin):
 	"""
