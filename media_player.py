@@ -297,13 +297,13 @@ class media_player(item.item):
 		try:
 			self.mp.close()
 			self.mp = None
-			if hasattr(self,"audiostream"):
+			if hasattr(self,"audiostream") and self.audiostream != None:
 				self.audiostream.close()					
 			return True
 		except Exception as e:
 			if self.experiment.debug:
 				print "media_player.run(): an Error was caught: %s" % e
-			return false
+			return False
 
 class qtmedia_player(media_player, qtplugin.qtplugin):
 	"""
