@@ -89,6 +89,10 @@ class media_player(item.item):
 		# Pass the word on to the parent
 		item.item.prepare(self)
 
+		# Give a sensible error message if the proper back-end has not been selected
+		if not self.has("canvas_backend") or self.get("canvas_backend") != "legacy":
+			raise exceptions.runtime_error("The media_player plug-in requires the legacy back-end. Sorry!")
+
 		# Byte-compile the event handling code (if any)
 		if self.event_handler.strip() != "":
 			self._event_handler = compile(self.event_handler, "<string>", "exec")
@@ -246,17 +250,20 @@ class media_player(item.item):
 
 		return continue_playback
 
-		def rewind(self):
+	def rewind(self):
+
+		"""Rewinds back to the first frame"""
+
+		try:
+			# To prevent reading before the first frame which happens occasionally with some files
+			self.videoTrack.seek_to_frame(1)
+			self.frameNo = 1
+		except IOError:
 			try:
-				# To prevent reading before the first frame which happens occasionally with some files
-				self.videoTrack.seek_to_frame(1)
-				self.frameNo = 1
+				self.videoTrack.seek_to_frame(10)
+				self.frameNo = 10
 			except IOError:
-				try:
-					self.videoTrack.seek_to_frame(10)
-					self.frameNo = 10
-				except IOError:
-					raise exceptions.runtime_error("Could not read the first frames of the video file")
+				raise exceptions.runtime_error("Could not read the first frames of the video file")
 
 	def run(self):
 
