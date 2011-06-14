@@ -32,8 +32,9 @@ import pygame
 from pygame.locals import *
 import pyaudio
 import os.path
+import libopensesame.generic_response
 
-class media_player(item.item):
+class media_player(item.item, libopensesame.generic_response.generic_response):
 
 	"""The media_player plug-in offers advanced video playback functionality in OpenSesame, using pyffmpeg"""
 
@@ -138,11 +139,7 @@ class media_player(item.item):
 				self.samplingFreq = self.audioTrack.get_samplerate()
 				if self.experiment.debug:
 					print "media_player.load(): Channels: %s" % self.audioTrack.get_channels()
-				self.audiostream = pyaudio.PyAudio().open(rate=self.samplingFreq,
-                                                                        channels=self.audioTrack.get_channels(),
-                                                                        format=pyaudio.paInt16,
-                                                                        output=True)
-
+				self.audiostream = pyaudio.PyAudio().open(rate = self.samplingFreq, channels = self.audioTrack.get_channels(), format = pyaudio.paInt16, output = True)
 				self.hasSound = True
 			else:
 				self.hasSound = False
@@ -159,8 +156,8 @@ class media_player(item.item):
 				if self.experiment.debug:
 					print "media_player.load(): No audio track found"
 		else:
-                        if self.hasSound:
-                                self.audioTrack.set_observer(self.handleAudioFrame)
+			if self.hasSound:
+				self.audioTrack.set_observer(self.handleAudioFrame)
 
 		self.videoTrack.set_observer(self.handleVideoFrame)
 		self.frameTime = 1000/self.videoTrack.get_fps()
@@ -192,7 +189,6 @@ class media_player(item.item):
 			pygame.display.flip()
 		self.frameNo += 1
 
-
 	def handleAudioFrame(self, a):
 
 		"""
@@ -211,7 +207,6 @@ class media_player(item.item):
 			self.audioBuffer.append( (a[0].data, self.audioTrack.get_cur_pts()) )
 		else:
 			self.audiostream.write(a[0].data)
-
 
 	def pause(self):
 
@@ -281,6 +276,12 @@ class media_player(item.item):
 		if self.experiment.debug:
 			print "media_player.run(): Audio delay: %d" % (300000-self.audioCorrection)
 
+		# Set some response variables, in case a response will be given
+		if self.experiment.start_response_interval == None:
+			self.experiment.start_response_interval = self.get("time_%s" % self.name)
+			self.experiment.end_response_interval = self.experiment.start_response_interval
+		self.experiment.response = None
+
 		if self.file_loaded:
 			self.rewind()   #Make sure pointer is at the beginning of the video file
 
@@ -296,8 +297,12 @@ class media_player(item.item):
 							self.playing = self.handleEvent(event)
 						elif event.type == pygame.KEYDOWN and self.duration == "keypress":
 							self.playing = False
+							self.experiment.response = pygame.key.name(event.key)
+							self.experiment.end_response_interval = pygame.time.get_ticks()
 						elif event.type == pygame.MOUSEBUTTONDOWN and self.duration == "mouseclick":
 							self.playing = False
+							self.experiment.response = event.button
+							self.experiment.end_response_interval = pygame.time.get_ticks()
 
 						# Catch escape presses
 						if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -328,6 +333,14 @@ class media_player(item.item):
 						pygame.time.wait(sleeptime)
 
 			self.rewind()  #Rewind, if it needs to be played again in a next trial/block
+
+			# Process the response
+			if self.has("correct_response"):
+				correct_response = self.get("correct_response")
+			else:
+				correct_response = "undefined"
+			self.process_response(correct_response)
+
 			return True
 
 		else:
