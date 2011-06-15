@@ -77,7 +77,6 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		# The parent handles the rest of the construction
 		item.item.__init__(self, name, experiment, string)
 
-
 	def prepare(self):
 
 		"""
@@ -334,13 +333,8 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 
 			self.rewind()  #Rewind, if it needs to be played again in a next trial/block
 
-			# Process the response
-			if self.has("correct_response"):
-				correct_response = self.get("correct_response")
-			else:
-				correct_response = "undefined"
-			self.process_response(correct_response)
-
+			libopensesame.generic_response.generic_response.response_bookkeeping(self)
+			
 			return True
 
 		else:
