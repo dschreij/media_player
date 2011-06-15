@@ -361,6 +361,10 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 				print "media_player.run(): an Error was caught: %s" % e
 			return False
 
+	def var_info(self):
+
+		return libopensesame.generic_response.generic_response.var_info(self)		
+
 class qtmedia_player(media_player, qtplugin.qtplugin):
 
 	"""Handles the GUI aspects of the plug-in"""
