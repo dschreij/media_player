@@ -3,9 +3,9 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="LibreOffice 3.3  (Linux)">
+	<META NAME="GENERATOR" CONTENT="LibreOffice 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20110322;15332100">
+	<META NAME="CHANGED" CONTENT="20110614;20375500">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { margin: 0.79in }
@@ -15,6 +15,9 @@
 		H1.cjk { font-family: "Droid Sans Fallback"; font-size: 16pt }
 		H1.ctl { font-family: "Lohit Hindi"; font-size: 16pt }
 		PRE.cjk { font-family: "Droid Sans Fallback", monospace }
+		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
+		H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
 		A:link { so-language: zxx }
 	-->
 	</STYLE>
@@ -55,6 +58,18 @@ following options are available:</P>
 	when a key is pressed) or 'mouseclick' (to stop when a mousbutton is
 	clicked).</P>
 </UL>
+<H2 CLASS="western">Response collection</H2>
+<P>If you enter 'keypress' or 'mouseclick' as a duration, responses
+will be logged in the regular way. That is, the following variables
+will be set:</P>
+<UL>
+	<LI><P><I>response</I></P>
+	<LI><P><I>response_time</I></P>
+	<LI><P><I>correct</I></P>
+	<LI><P><I>average_response_time</I> (or <I>avg_rt</I>)</P>
+	<LI><P><I>accuracy</I> (or <I>acc</I>)</P>
+</UL>
+<H2 CLASS="western">Custom event handling</H2>
 <P>If you want, you can override the duration setting and use your
 own code to handle keypress and mouseclick events, which should be
 entered in the edit field. The PyGame event is passed as 'event' and
@@ -63,12 +78,12 @@ you can control playback by setting the the 'continue_playing' and
 the spacebar is pressed and stop playback when a mousebutton is
 clicked, you enter:</P>
 <PRE CLASS="western">if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-	self.paused = not self.paused
+        self.paused = not self.paused
 if event.type == pygame.MOUSEBUTTONDOWN:
-	continue_playback = False</PRE><P STYLE="margin-bottom: 0in">
+        continue_playback = False</PRE><P STYLE="margin-bottom: 0in">
 Please refer to the PyGame documentation for more information:</P>
 <P STYLE="margin-bottom: 0in"><A HREF="http://www.pygame.org/docs/ref/key.html">http://www.pygame.org/docs/ref/key.html</A></P>
-
-<P STYLE="margin-bottom: 0in">The number of the last played frame is also available under the variable: frame_no<BR></P>
+<P STYLE="margin-bottom: 0in">The number of the last played frame is
+also available under the variable: frame_no</P>
 </BODY>
 </HTML>
