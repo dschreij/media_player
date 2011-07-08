@@ -101,10 +101,10 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 
 		# Find the full path to the video file. This will point to some
 		# temporary folder where the file pool has been placed
-                path = self.experiment.get_file(str(self.get("video_src")))
+                path = self.experiment.get_file(str(self.eval_text(self.get("video_src"))))
 
 		# Open the video file
-		if not os.path.exists(path) or str(self.get("video_src")).strip() == "":
+		if not os.path.exists(path) or str(self.eval_text("video_src")).strip() == "":
 			raise exceptions.runtime_error("Video file '%s' was not found in video_player '%s' (or no video file was specified)." % (os.path.basename(path), self.name))
 		self.load(path)
 
