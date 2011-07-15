@@ -1,0 +1,12 @@
+The media_player plug-in adds video playback capabilities
+to the OpenSesame experiment builder.
+
+URL
+- <http://www.cogsci.nl/opensesame>
+- <http://osdoc.cogsci.nl/plug-ins/media-player-plug-in>
+
+DEPENDENCIES
+- PyAudio <http://people.csail.mit.edu/hubert/pyaudio/>
+- FFMpeg <http://www.ffmpeg.org/>
+- PyFFMpeg <http://code.google.com/p/pyffmpeg/>
+
