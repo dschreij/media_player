@@ -73,6 +73,7 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		self.sendInfoToEyelink = "yes"
 		self.event_handler = ""
 		self.frameNo = 0
+		self.event_handler_trigger = "on keypress"
 
 		# The parent handles the rest of the construction
 		item.item.__init__(self, name, experiment, string)
@@ -99,12 +100,21 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		else:
 			self._event_handler = None
 
+		# Determine when the event handler should be called
+		if self.event_handler_trigger == "on keypress":
+			self._event_handler_always = False
+		else:
+			self._event_handler_always = True
+
 		# Find the full path to the video file. This will point to some
 		# temporary folder where the file pool has been placed
-                path = self.experiment.get_file(str(self.get("video_src")))
+		path = self.experiment.get_file(str(self.eval_text(self.get("video_src"))))
+
+		if self.experiment.debug:
+			print "media_player.prepare(): loading '%s'" % path
 
 		# Open the video file
-		if not os.path.exists(path) or str(self.get("video_src")).strip() == "":
+		if not os.path.exists(path) or str(self.eval_text("video_src")).strip() == "":
 			raise exceptions.runtime_error("Video file '%s' was not found in video_player '%s' (or no video file was specified)." % (os.path.basename(path), self.name))
 		self.load(path)
 
@@ -219,7 +229,7 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 
 		self.paused = False
 
-	def handleEvent(self, event):
+	def handleEvent(self, event = None):
 
 		"""
 		Allows the user to insert custom code. Code is stored in the event_handler variable.
@@ -289,23 +299,26 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 			while self.playing:
 				self.frame_calc_start = pygame.time.get_ticks()
 
-				# Process all events
-				for event in pygame.event.get():
-					if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-						if self._event_handler != None:
-							self.playing = self.handleEvent(event)
-						elif event.type == pygame.KEYDOWN and self.duration == "keypress":
-							self.playing = False
-							self.experiment.response = pygame.key.name(event.key)
-							self.experiment.end_response_interval = pygame.time.get_ticks()
-						elif event.type == pygame.MOUSEBUTTONDOWN and self.duration == "mouseclick":
-							self.playing = False
-							self.experiment.response = event.button
-							self.experiment.end_response_interval = pygame.time.get_ticks()
+				if self._event_handler_always:
+					self.playing = self.handleEvent()
+				else:
+					# Process all events
+					for event in pygame.event.get():
+						if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+							if self._event_handler != None:
+								self.playing = self.handleEvent(event)
+							elif event.type == pygame.KEYDOWN and self.duration == "keypress":
+								self.playing = False
+								self.experiment.response = pygame.key.name(event.key)
+								self.experiment.end_response_interval = pygame.time.get_ticks()
+							elif event.type == pygame.MOUSEBUTTONDOWN and self.duration == "mouseclick":
+								self.playing = False
+								self.experiment.response = event.button
+								self.experiment.end_response_interval = pygame.time.get_ticks()
 
-						# Catch escape presses
-						if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-							raise exceptions.runtime_error("The escape key was pressed")
+							# Catch escape presses
+							if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+								raise exceptions.runtime_error("The escape key was pressed")
 
 				# Advance to the next frame if the player isn't paused
 				if not self.paused:
@@ -411,6 +424,7 @@ class qtmedia_player(media_player, qtplugin.qtplugin):
 		else:
 			self.add_spinbox_control("audioCorrection", "Audio delay", 0, 300000, tooltip = "Specify audio delay relative to video")
 		self.add_combobox_control("sendInfoToEyelink", "Send frame no. to EyeLink", ["yes", "no"], tooltip = "If an eyelink is connected, then it will receive the number of each displayed frame as a msg event.\r\nYou can also see this information in the eyelink's status message box.\r\nThis option requires the installation of the OpenSesame EyeLink plugin and an established connection to the EyeLink.")
+		self.add_combobox_control("event_handler_trigger", "Call custom Python code", ["on keypress", "after every frame"], tooltip = "Determine when the custom event handling code is called.")
 		self.add_line_edit_control("duration", "Duration", tooltip = "Expecting a value in seconds, 'keypress' or 'mouseclick'")
 		self.add_editor_control("event_handler", "Custom Python code for handling keypress and mouseclick events (See Help for more information)", syntax = True, tooltip = "Specify how you would like to handle events like mouse clicks or keypresses. When set, this overrides the Duration attribute")
 		self.add_text("<small><b>Media Player OpenSesame Plugin v%.2f, Copyright (2011) Daniel Schreij</b></small>" % self.version)
