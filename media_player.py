@@ -33,9 +33,9 @@ from pygame.locals import *
 import pyaudio
 import os.path
 import libopensesame.generic_response
+closed = False
 
 class media_player(item.item, libopensesame.generic_response.generic_response):
-
 	"""The media_player plug-in offers advanced video playback functionality in OpenSesame, using pyffmpeg"""
 
 	def __init__(self, name, experiment, string = None):
@@ -78,6 +78,9 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		# The parent handles the rest of the construction
 		item.item.__init__(self, name, experiment, string)
 
+		# Indicate function for clean up that is run after the experiment finishes
+		self.experiment.cleanup_functions.append(self.closeStreams)
+
 	def prepare(self):
 
 		"""
@@ -117,9 +120,6 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		if not os.path.exists(path) or str(self.eval_text("video_src")).strip() == "":
 			raise exceptions.runtime_error("Video file '%s' was not found in video_player '%s' (or no video file was specified)." % (os.path.basename(path), self.name))
 		self.load(path)
-
-		# Indicate function for clean up that is run after the experiment finishes
-		self.experiment.cleanup_functions.append(self.closeStreams)
 
 		# Report success
 		return True
@@ -279,7 +279,8 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		Returns:
 		True on success, False on failure
 		"""
-
+                print "Starting video playback"
+                
 		# Log the onset time of the item
 		self.set_item_onset()
 		if self.experiment.debug:
@@ -355,24 +356,30 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 			return False
 
 	def closeStreams(self):
-
 		"""
 		A cleanup function, to make sure that the video files are closed
 
 		Returns:
 		True on success, False on failure
 		"""
+                global closed
 
-		try:
-			self.mp.close()
-			self.mp = None
-			if hasattr(self,"audiostream") and self.audiostream != None:
-				self.audiostream.close()
-			return True
-		except Exception as e:
-			if self.experiment.debug:
-				print "media_player.run(): an Error was caught: %s" % e
-			return False
+                if closed:
+                        print "Streams already closed"
+                        return True
+                closed = True		
+
+                print "Closing streams"
+                try:
+                        self.mp.close()
+                        self.mp = None
+                        if hasattr(self,"audiostream") and self.audiostream != None:
+                                self.audiostream.close()                                        
+                        return True
+                except Exception as e:
+                        if self.experiment.debug:
+                                print "media_player.run(): an Error was caught: %s" % e
+                        return False
 
 	def var_info(self):
 
