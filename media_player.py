@@ -36,6 +36,7 @@ import libopensesame.generic_response
 closed = False
 
 class media_player(item.item, libopensesame.generic_response.generic_response):
+
 	"""The media_player plug-in offers advanced video playback functionality in OpenSesame, using pyffmpeg"""
 
 	def __init__(self, name, experiment, string = None):
@@ -52,7 +53,7 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 		"""
 
 		# The version of the plug-in
-		self.version = 0.13
+		self.version = 0.14
 
 		self.mp = pyffmpeg.FFMpegReader(0,False)
 		self.videoTrack = None
@@ -356,30 +357,34 @@ class media_player(item.item, libopensesame.generic_response.generic_response):
 			return False
 
 	def closeStreams(self):
+	
 		"""
 		A cleanup function, to make sure that the video files are closed
 
 		Returns:
 		True on success, False on failure
 		"""
-                global closed
 
-                if closed:
-                        print "Streams already closed"
-                        return True
-                closed = True		
+		global closed
 
-                print "Closing streams"
-                try:
-                        self.mp.close()
-                        self.mp = None
-                        if hasattr(self,"audiostream") and self.audiostream != None:
-                                self.audiostream.close()                                        
-                        return True
-                except Exception as e:
-                        if self.experiment.debug:
-                                print "media_player.run(): an Error was caught: %s" % e
-                        return False
+		if closed:
+			if self.experiment.debug:
+				print "media_player.closeStreams(): streams already closed"
+			return True
+		closed = True		
+
+		if self.experiment.debug:
+			print "media_player.closeStreams(): closing streams"
+		try:
+			self.mp.close()
+			self.mp = None
+			if hasattr(self,"audiostream") and self.audiostream != None:
+				self.audiostream.close()                                        
+			return True
+		except Exception as e:
+			if self.experiment.debug:
+				print "media_player.closeStreams(): an Error was caught: %s" % e
+		return False
 
 	def var_info(self):
 
